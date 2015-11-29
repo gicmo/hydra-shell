@@ -1,16 +1,24 @@
 use std::io::Write;
 use std::process::Command;
 
-fn git_upload_pack(args: &str, uid: &str, cwd: &std::path::Path) {
-    let to_trim: &[char] = &[' ', '\''];
-    let mut s = String::from(cwd.to_str().unwrap());
-    s.push_str(args.trim_matches(to_trim));
+fn translate_path(vpath: &str) -> String {
+    let exe = std::env::current_exe().unwrap();
+    let cwd = exe.parent().unwrap();
 
-    if !args.ends_with(".git") {
-        s.push_str(".git");
+    let to_trim: &[char] = &[' ', '\''];
+    let mut repo_path = String::from(cwd.to_str().unwrap());
+    repo_path.push_str(vpath.trim_matches(to_trim));
+
+    if !vpath.ends_with(".git") {
+        repo_path.push_str(".git");
     }
 
-    let ref repo_dir = &*s;
+    repo_path
+}
+
+fn git_upload_pack(args: &str, uid: &str) {
+
+    let ref repo_dir = &*translate_path(args);
 
     {
         let mut stderr = std::io::stderr();
@@ -58,7 +66,7 @@ fn main() {
     }
 
     match gitcmd {
-        "git-upload-pack" => git_upload_pack(gitarg, &uid, cwd),
+        "git-upload-pack" => git_upload_pack(gitarg, uid),
         _ => panic!("[E] unhandled command")
     }
 
