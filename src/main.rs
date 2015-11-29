@@ -36,6 +36,28 @@ fn git_upload_pack(args: &str, uid: &str) {
     assert!(status.success());
 }
 
+
+fn git_receive_pack(args: &str, uid: &str) {
+
+    let ref repo_dir = &*translate_path(args);
+
+    {
+        let mut stderr = std::io::stderr();
+        let _ = stderr.write_fmt(format_args!("[D] git-upload-pack @ {} -> {} [{}] \n",
+        args, repo_dir, uid));
+    }
+
+    let mut child = Command::new("git-receive-pack")
+                            .arg(repo_dir)
+                            .spawn()
+                            .unwrap_or_else(|e| { panic!("[E] executing child ({})", e) });
+
+    let status = child.wait().unwrap_or_else(|e| { panic!("[E] waiting on child ({})", e) });
+
+    assert!(status.success());
+}
+
+
 fn main() {
     let v: Vec<String> = std::env::args().collect();
     let ssh_cmd = std::env::var("SSH_ORIGINAL_COMMAND");
@@ -67,6 +89,7 @@ fn main() {
 
     match gitcmd {
         "git-upload-pack" => git_upload_pack(gitarg, uid),
+        "git-receive-pack" => git_receive_pack(gitarg, uid),
         _ => panic!("[E] unhandled command")
     }
 
