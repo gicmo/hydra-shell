@@ -19,7 +19,7 @@ fn git_upload_pack(args: &str, uid: &str, cwd: &std::path::Path) {
     }
 
     let mut child = Command::new("git-upload-pack")
-                            .arg("/Users/gicmo/Temp/repo.git")
+                            .arg(repo_dir)
                             .spawn()
                             .unwrap_or_else(|e| { panic!("[E] executing child ({})", e) });
 
