@@ -2,8 +2,12 @@ use std::io::Write;
 use std::process::Command;
 
 fn translate_path(vpath: &str) -> String {
-    let exe = std::env::current_exe().unwrap();
-    let cwd = exe.parent().unwrap();
+    let exe = std::env::current_exe()
+                        .map_err(|e| format!("Could not get current dir ({})", e))
+                        .and_then(|exe| { exe.parent()
+                                             .map(|p| p.to_path_buf())
+                                             .ok_or("CWD is root".to_string()) });
+    let cwd = exe.unwrap();
 
     let to_trim: &[char] = &[' ', '\''];
     let mut repo_path = String::from(cwd.to_str().unwrap());
